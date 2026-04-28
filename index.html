@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jarvis Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #02030a;
+      --panel: rgba(15, 18, 28, 0.88);
+      --panel-soft: rgba(255, 255, 255, 0.06);
+      --text: #e8f5ff;
+      --info: #8fd7ff;
+      --accent: #d3d3d3;
+      --accent-strong: #edf2ff;
+      --silver: linear-gradient(135deg, #afb7c2 0%, #f9fafb 100%);
+      --glow: rgba(209, 217, 232, 0.24);
+      --border: rgba(255, 255, 255, 0.15);
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.36);
+      --radius: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top left, rgba(83, 146, 255, 0.18), transparent 24%),
+                  radial-gradient(circle at bottom right, rgba(206, 255, 255, 0.12), transparent 20%),
+                  var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.06), transparent 18%),
+                  radial-gradient(circle at 80% 75%, rgba(106, 201, 255, 0.08), transparent 20%);
+      pointer-events: none;
+    }
+
+    #appContainer {
+      position: relative;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 30px 24px 64px;
+      z-index: 1;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2.3rem, 3.2vw, 4.2rem);
+      letter-spacing: 0.06em;
+      line-height: 1.02;
+      max-width: 12ch;
+    }
+
+    header p {
+      color: #9fb8cf;
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 44rem;
+    }
+
+    #mainGrid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    #visualStage {
+      min-height: 720px;
+      padding: 40px;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+
+    #jarvisCircle {
+      position: relative;
+      width: clamp(220px, 18vw, 420px);
+      height: clamp(220px, 18vw, 420px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 45% 25%, #fafcff, #b8c2d4 18%, #8f99a9 40%, #596271 100%);
+      box-shadow: inset 0 0 72px rgba(255, 255, 255, 0.32), 0 0 60px rgba(131, 165, 255, 0.22);
+      display: grid;
+      place-items: center;
+      z-index: 2;
+      animation: orbit 16s linear infinite;
+    }
+
+    #jarvisCircle::before {
+      content: '';
+      position: absolute;
+      inset: -40px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 0 90px rgba(159, 188, 255, 0.24);
+    }
+
+    .pulseRing {
+      position: absolute;
+      inset: 20px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.22);
+      animation: glow 3.8s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    #circleLabel {
+      text-align: center;
+      z-index: 3;
+      color: var(--accent-strong);
+      max-width: 18rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      letter-spacing: 0.04em;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 28px;
+      justify-content: center;
+    }
+
+    button,
+    .controlToggle {
+      border: none;
+      border-radius: 999px;
+      padding: 14px 24px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+      background: linear-gradient(135deg, #dae7ff, #a4b7ff);
+      color: #0f172a;
+    }
+
+    button:hover,
+    .controlToggle:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #e8f0ff, #bfcfff);
+    }
+
+    button:active,
+    .controlToggle:active {
+      transform: translateY(0);
+    }
+
+    .panel footer {
+      display: grid;
+      gap: 14px;
+      padding: 24px 28px 32px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+
+    .card h2 {
+      font-family: 'Orbitron', sans-serif;
+      margin-bottom: 12px;
+      color: #cbd5e1;
+      font-size: 1.06rem;
+    }
+
+    .card p,
+    .card li,
+    .statusLine {
+      color: #cad5ea;
+      font-size: 0.98rem;
+      line-height: 1.7;
+    }
+
+    .card ul {
+      list-style: none;
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+      padding-left: 0;
+    }
+
+    .logWindow {
+      max-height: 440px;
+      overflow: auto;
+      padding-right: 12px;
+      margin-top: 12px;
+    }
+
+    .logEntry {
+      border-left: 2px solid rgba(149, 206, 255, 0.33);
+      padding-left: 14px;
+      margin-bottom: 16px;
+      opacity: 0.94;
+    }
+
+    .logEntry strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #f8fbff;
+      font-size: 0.98rem;
+    }
+
+    .logEntry time {
+      color: #8da4c3;
+      font-size: 0.84rem;
+    }
+
+    .statusBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 900px;
+      background: rgba(139, 173, 255, 0.12);
+      border: 1px solid rgba(139, 173, 255, 0.18);
+      color: #cff0ff;
+      font-size: 0.95rem;
+      margin-top: 18px;
+    }
+
+    .statusBadge span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #81d6ff;
+      box-shadow: 0 0 14px rgba(129, 214, 255, 0.45);
+    }
+
+    .supportError {
+      margin-top: 18px;
+      color: #ffb5b5;
+      padding: 18px 20px;
+      border-radius: 22px;
+      background: rgba(150, 46, 62, 0.16);
+      border: 1px solid rgba(255, 159, 166, 0.16);
+    }
+
+    .footerNote {
+      margin-top: 20px;
+      color: #8da4c3;
+      font-size: 0.92rem;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 980px) {
+      #mainGrid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      #appContainer {
+        padding: 18px 16px 52px;
+      }
+
+      .controls {
+        flex-direction: column;
+      }
+
+      .card {
+        padding: 18px;
+      }
+    }
+
+    @keyframes orbit {
+      from { transform: rotate(0deg) translateY(0); }
+      to { transform: rotate(360deg) translateY(0); }
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 40px rgba(255, 255, 255, 0.18); transform: scale(1); }
+      to { box-shadow: 0 0 140px rgba(180, 214, 255, 0.32); transform: scale(1.08); }
+    }
+
+    @keyframes breath {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div id="appContainer">
+    <header>
+      <div>
+        <h1>Jarvis Assistant</h1>
+        <p>Welcome to your personal assistant that listens, learns, and responds with a live animated silver interface. Use the voice controls, read the live log, and watch the silver circle pulse when Jarvis is talking.</p>
+      </div>
+      <div class="statusBadge" id="speechStatusBadge">
+        <span></span>
+        <span id="speechStatus">Waiting for command</span>
+      </div>
+    </header>
+
+    <div id="mainGrid">
+      <section class="panel" id="visualStage">
+        <div id="jarvisCircle">
+          <div class="pulseRing"></div>
+          <div id="circleLabel">
+            <strong>Jarvis Voice Core</strong>
+            <span id="circleState">Idle · ready to listen</span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="startListen">Activate Listening</button>
+          <button id="stopListen">Stop Listening</button>
+          <button id="demoMode">Demo Intelligence</button>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="card">
+          <h2>Assistant Summary</h2>
+          <p class="statusLine" id="assistantSummaryText">Jarvis is preparing the knowledge engine. Speak to the assistant to begin interaction, and watch it respond using browser voice synthesis.</p>
+        </div>
+
+        <div class="card">
+          <h2>Available Actions</h2>
+          <ul>
+            <li>Tap <strong>Activate Listening</strong> and say anything naturally.</li>
+            <li>Use speech to ask for facts, weather style summaries, or creative suggestions.</li>
+            <li>Jarvis will animate the circle while speaking and adapt size on response.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Live Interaction Log</h2>
+          <div class="logWindow" id="logWindow"></div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="panel">
+      <div class="card">
+        <h2>Jarvis Intelligence Sources</h2>
+        <p>Jarvis Assistant contains expert-level knowledge in science, technology, history, art, personal productivity, mental models, life planning, and creative storytelling. Every response is drawn from a structured knowledge base to feel rich and informative.</p>
+        <div class="footerNote">Note: For the best experience, use a modern browser that supports SpeechRecognition and SpeechSynthesis APIs. If voice recognition is unavailable, Jarvis still responds by typing answers on screen.</div>
+      </div>
+    </footer>
+  </div>
+  <script src="assistantData.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
